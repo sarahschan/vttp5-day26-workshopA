@@ -1,8 +1,12 @@
 package sg.edu.nus.iss.paf_day26_workshopA.service;
 
+import static sg.edu.nus.iss.paf_day26_workshopA.repository.Constants.*;
+
+import java.lang.classfile.ClassFile.Option;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,9 +42,9 @@ public class GameService {
 
         for (Document d : queryResults) {
             JsonObject game = Json.createObjectBuilder()
-                .add("_id", d.getObjectId("_id").toString())
-                .add("game_id", d.getInteger("gid"))
-                .add("name", d.getString("name"))
+                .add("object_id", d.getObjectId(FIELD_ID).toString())
+                .add("game_id", d.getInteger(FIELD_GID))
+                .add("name", d.getString(FIELD_NAME))
                 .build();
             gamesJsonArrayBuilder.add(game);
         }
@@ -67,5 +71,29 @@ public class GameService {
         JsonArray gamesArray = buildGamesArray(results);
 
         return buildResponse(gamesArray, limit, offset);
+    }
+
+
+    public Optional<JsonObject> getGameById(String gameId) {
+
+        Document d = gameRepository.getGameById(gameId);
+
+        if (d == null) {
+            return Optional.empty();
+        }
+
+        JsonObject gameObject = Json.createObjectBuilder()
+            .add("object_id", d.getObjectId(FIELD_ID).toString())
+            .add("game_id", d.getInteger(FIELD_GID))
+            .add("name", d.getString(FIELD_NAME))
+            .add("year", d.getInteger(FIELD_YEAR))
+            .add("ranking", d.getInteger(FIELD_RANKING))
+            .add("average", d.getInteger(FIELD_AVERAGE) == null ? 0 : d.getInteger(FIELD_AVERAGE))
+            .add("users_rated", d.getInteger(FIELD_USERS_RATED))
+            .add("url", d.getString(FIELD_URL))
+            .add("thumbnail", d.getString(FIELD_THUMBNAIL))
+            .build();
+    
+        return Optional.of(gameObject);
     }
 }

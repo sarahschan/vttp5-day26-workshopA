@@ -6,6 +6,7 @@ import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
@@ -49,9 +50,22 @@ public class GameRepository {
             .skip(offset)
             .limit(limit);
         query.fields()
-        .include(FIELD_ID, FIELD_GID, FIELD_NAME);
+            .include(FIELD_ID, FIELD_GID, FIELD_NAME);
 
         return template.find(query, Document.class, COLLECTION_GAMES);
+    }
+
+
+    public Document getGameById(String gameId) {
+
+        Criteria criteria = Criteria.where(FIELD_ID).is(gameId);
+
+        Query query = Query.query(criteria);
+        query.fields()
+            .include(FIELD_ID, FIELD_GID, FIELD_NAME, FIELD_YEAR, FIELD_RANKING, FIELD_AVERAGE, FIELD_USERS_RATED, FIELD_URL, FIELD_THUMBNAIL);
+    
+        return template.findOne(query, Document.class, COLLECTION_GAMES);
+
     }
 
 }
