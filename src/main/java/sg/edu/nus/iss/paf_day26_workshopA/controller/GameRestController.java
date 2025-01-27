@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,6 +29,17 @@ public class GameRestController {
     
         JsonObject result = gameService.getGames(offset, limit);
         
+        return new ResponseEntity<>(result.toString(), HttpStatus.OK);
+    }
+
+
+    @GetMapping(path = "/rank", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> getGamesByRank(
+        @RequestParam(required = false, defaultValue = "25") int limit,
+        @RequestParam(required = false, defaultValue = "0") int offset){
+
+        JsonObject result = gameService.getGamesByRank(offset, limit);
+
         return new ResponseEntity<>(result.toString(), HttpStatus.OK);
     }
 }

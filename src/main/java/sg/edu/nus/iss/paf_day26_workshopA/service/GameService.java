@@ -12,7 +12,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonObjectBuilder;
 import sg.edu.nus.iss.paf_day26_workshopA.repository.GameRepository;
 
 @Service
@@ -33,23 +32,40 @@ public class GameService {
         return response;
     }
 
+    public JsonArray buildGamesArray(List<Document> queryResults) {
+        
+        JsonArrayBuilder gamesJsonArrayBuilder = Json.createArrayBuilder();
 
-    public JsonObject getGames(int offset, int limit) {
-        
-        List<Document> results = gameRepository.getGames(offset, limit);
-        JsonArrayBuilder gamesArrayBuilder = Json.createArrayBuilder();
-        
-        for (Document d : results) {
+        for (Document d : queryResults) {
             JsonObject game = Json.createObjectBuilder()
                 .add("_id", d.getObjectId("_id").toString())
                 .add("game_id", d.getInteger("gid"))
                 .add("name", d.getString("name"))
                 .build();
-            gamesArrayBuilder.add(game);
+            gamesJsonArrayBuilder.add(game);
         }
 
-        JsonObject response = buildResponse(gamesArrayBuilder.build(), limit, offset);
+        return gamesJsonArrayBuilder.build();
+    }
 
-        return response;
+
+    public JsonObject getGames(int offset, int limit) {
+        
+        List<Document> results = gameRepository.getGames(offset, limit);
+
+        JsonArray gamesArray = buildGamesArray(results);
+
+        return buildResponse(gamesArray, limit, offset);
+
+    }
+
+
+    public JsonObject getGamesByRank(int offset, int limit) {
+
+        List<Document> results = gameRepository.getGamesByRank(offset, limit);
+
+        JsonArray gamesArray = buildGamesArray(results);
+
+        return buildResponse(gamesArray, limit, offset);
     }
 }

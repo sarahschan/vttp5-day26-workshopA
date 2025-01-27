@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
@@ -28,11 +29,29 @@ public class GameRepository {
             .skip(offset)
             .limit(limit);
         query.fields()
-            .include("_id", "gid", "name");
+            .include(FIELD_ID, FIELD_GID, FIELD_NAME);
 
-        List<Document> results = template.find(query, Document.class, C_GAMES);
+        return template.find(query, Document.class, COLLECTION_GAMES);
 
-        return results;
+    }
+
+
+    /*
+     * db.games.find()
+     * .sort({'ranking' : 1})
+     * .skip(5)
+     * .limit(5)
+     */
+    public List<Document> getGamesByRank(int offset, int limit) {
+
+        Query query = new Query()
+            .with(Sort.by(Sort.Direction.ASC, FIELD_RANKING))
+            .skip(offset)
+            .limit(limit);
+        query.fields()
+        .include(FIELD_ID, FIELD_GID, FIELD_NAME);
+
+        return template.find(query, Document.class, COLLECTION_GAMES);
     }
 
 }
