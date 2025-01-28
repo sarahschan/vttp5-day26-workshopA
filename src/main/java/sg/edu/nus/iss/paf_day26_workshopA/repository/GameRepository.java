@@ -56,6 +56,14 @@ public class GameRepository {
     }
 
 
+    /*
+     *  db.games.find({
+     *  "_id" : ObjectId("679724f47cfa760d3f7db14b")
+     *  })
+     *  .projection({
+     *  _id: 1, gid: 1, name: 1, year: 1, ranking: 1, average: 1, users_rated: 1, url: 1, image: 1
+     *  })
+     */
     public Document getGameById(String gameId) {
 
         Criteria criteria = Criteria.where(FIELD_ID).is(gameId);
