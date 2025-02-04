@@ -74,26 +74,27 @@ public class GameService {
     }
 
 
-    public Optional<JsonObject> getGameById(String gameId) {
+    public Optional<Document> getGameById(String gameId) {
 
-        Document d = gameRepository.getGameById(gameId);
+        Document result = gameRepository.getGameById(gameId);
 
-        if (d == null) {
+        if (result == null) {
             return Optional.empty();
         }
 
-        JsonObject gameObject = Json.createObjectBuilder()
-            .add("object_id", d.getObjectId(FIELD_ID).toString())
-            .add("game_id", d.getInteger(FIELD_GID))
-            .add("name", d.getString(FIELD_NAME))
-            .add("year", d.getInteger(FIELD_YEAR))
-            .add("ranking", d.getInteger(FIELD_RANKING))
-            .add("average", d.getInteger(FIELD_AVERAGE) == null ? 0 : d.getInteger(FIELD_AVERAGE))
-            .add("users_rated", d.getInteger(FIELD_USERS_RATED))
-            .add("url", d.getString(FIELD_URL))
-            .add("thumbnail", d.getString(FIELD_THUMBNAIL))
-            .build();
-    
-        return Optional.of(gameObject);
+        String objectId = result.getObjectId("_id").toString();
+        Document formatted = new Document()
+            .append("object_id", objectId)
+            .append("game_id", result.get("game_id"))
+            .append("name", result.get("name"))
+            .append("year", result.get("year"))
+            .append("ranking", result.get("ranking"))
+            .append("average", result.get("average"))
+            .append("users_rated", result.get("users_rated"))
+            .append("url", result.get("url"))
+            .append("thumbnail", result.get("thumbnail"))
+            .append("timestamp", LocalDateTime.now().toString());
+
+        return Optional.of(formatted);
     }
 }

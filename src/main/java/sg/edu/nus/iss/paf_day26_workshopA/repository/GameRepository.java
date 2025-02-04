@@ -6,6 +6,14 @@ import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.AddFieldsOperation;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.ConditionalOperators;
+import org.springframework.data.mongodb.core.aggregation.GroupOperation;
+import org.springframework.data.mongodb.core.aggregation.LookupOperation;
+import org.springframework.data.mongodb.core.aggregation.MatchOperation;
+import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
+import org.springframework.data.mongodb.core.aggregation.UnwindOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
@@ -56,23 +64,49 @@ public class GameRepository {
     }
 
 
-    /*
-     *  db.games.find({
-     *  "_id" : ObjectId("679724f47cfa760d3f7db14b")
-     *  })
-     *  .projection({
-     *  _id: 1, gid: 1, name: 1, year: 1, ranking: 1, average: 1, users_rated: 1, url: 1, image: 1
-     *  })
-     */
+    // db.games.aggregate([
+    //     { $match: { "_id": ObjectId("678f60643aef20fc8f8c70ea") }},
+    //     { $lookup: {
+    //         from: 'comments',
+    //         foreignField: 'gid',
+    //         localField: 'gid',
+    //         as: 'reviews'
+    //     }},
+    //     { $unwind: "$reviews"},
+    //     { $group: {
+    //         _id: "$_id",
+    //         game_id: {$first: "$gid"},
+    //         name: {$first: "$name"},
+    //         year: {$first: "$year"},
+    //         ranking: {$first: "$ranking"},
+    //         average: {$avg: "$reviews.rating"},
+    //         users_rated: {$first: "$users_rated"},
+    //         url: {$first: "$url"},
+    //         thumbnail: {$first: "$image"}
+    //     }}
+    // ])
     public Document getGameById(String gameId) {
 
-        Criteria criteria = Criteria.where(FIELD_ID).is(gameId);
+        Criteria criteria = Criteria.where("_id").is(gameId);
+        MatchOperation match_id = Aggregation.match(criteria);
 
-        Query query = Query.query(criteria);
-        query.fields()
-            .include(FIELD_ID, FIELD_GID, FIELD_NAME, FIELD_YEAR, FIELD_RANKING, FIELD_AVERAGE, FIELD_USERS_RATED, FIELD_URL, FIELD_THUMBNAIL);
-    
-        return template.findOne(query, Document.class, COLLECTION_GAMES);
+        LookupOperation lookupComments = Aggregation.lookup("comments", "gid", "gid", "reviews");
+
+        UnwindOperation unwindReviews = Aggregation.unwind("reviews");
+
+        GroupOperation groupOperation = Aggregation.group("_id")
+            .first("gid").as("game_id")
+            .first("name").as("name")
+            .first("year").as("year")
+            .first("ranking").as("ranking")
+            .avg("reviews.rating").as("average")
+            .first("users_rated").as("users_rated")
+            .first("url").as("url")
+            .first("image").as("thumbnail");
+
+        Aggregation pipeline = Aggregation.newAggregation(match_id, lookupComments, unwindReviews, groupOperation);
+
+        return template.aggregate(pipeline, "games", Document.class).getUniqueMappedResult();
 
     }
 

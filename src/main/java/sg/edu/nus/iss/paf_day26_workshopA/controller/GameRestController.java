@@ -2,6 +2,7 @@ package sg.edu.nus.iss.paf_day26_workshopA.controller;
 
 import java.util.Optional;
 
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -50,7 +51,7 @@ public class GameRestController {
     @GetMapping(path = "/{game_id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getGameById(@PathVariable("game_id") String gameId) {
 
-        Optional<JsonObject> result = gameService.getGameById(gameId);
+        Optional<Document> result = gameService.getGameById(gameId);
 
         if (result.isEmpty()) {
             String notFoundMsg = String.format("Game with _id %s not found", gameId);
@@ -60,6 +61,6 @@ public class GameRestController {
             return new ResponseEntity<>(notFoundObj.toString(), HttpStatus.OK);
         }
 
-        return new ResponseEntity<>(result.get().toString(), HttpStatus.OK);
+        return new ResponseEntity<>(result.get().toJson(), HttpStatus.OK);
     }
 }
